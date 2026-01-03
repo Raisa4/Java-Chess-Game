@@ -68,7 +68,7 @@ public class MenuPanel extends JPanel {
         buttonContainer.add(Box.createVerticalStrut(25)); // Space
 
         addButton(buttonContainer, "MY GAMES", e -> {
-            JOptionPane.showMessageDialog(this, "My Games Feature Coming Next!");
+            Main.getInstance().showScreen("GAMES_LIST");
         });
 
         buttonContainer.add(Box.createVerticalStrut(25)); // Space

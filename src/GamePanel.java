@@ -88,42 +88,153 @@ public class GamePanel extends JPanel {
     private void handleSquareClick(int row, int col) throws InvalidMoveException {
         if (currentGame == null) return;
 
-
+        //(0,0) e top left and i need them to be as A1 bottom left
         char posCol = (char) ('A' + col);
         int posRow = 8 - row;
-
         Position clickedPos = new Position(posCol, posRow);
 
-        //SELECTION LOGIC
+        //select a piece
         if (selectedPosition == null) {
-
             Piece p = currentGame.getBoard().getPieceAt(clickedPos);
+
+            //piece can be only the current player color
             if (p != null && p.getColor() == currentGame.getCurrentPlayer().getColor()) {
                 selectedPosition = clickedPos;
                 statusLabel.setText("Selected " + p.type() + " at " + clickedPos);
                 highlightSquare(row, col);
             }
-        } else {
-            try {
-                // Attempt move
-                currentGame.getCurrentPlayer().makeMove(selectedPosition, clickedPos, currentGame.getBoard());
-
-                // Add to history
-                currentGame.updateTurn();
-
-                statusLabel.setText("Move successful!");
+        }
+        //move piece
+        else {
+            //deselection
+            if (clickedPos.equals(selectedPosition)) {
                 selectedPosition = null;
                 refreshBoard();
+                statusLabel.setText("Deselected.");
+                return;
+            }
 
-                //Check for game over
+            try {
+                Player player = currentGame.getCurrentPlayer();
+                Board board = currentGame.getBoard();
+
+                //make move
+                Piece capturedPiece = board.getPieceAt(clickedPos);
+                player.makeMove(selectedPosition, clickedPos, board);
+
+                // 2.check for promotion
+                Piece movedPiece = board.getPieceAt(clickedPos);
+                if (movedPiece != null && movedPiece.type() == 'P' && clickedPos.getRow() == 8) {
+                    board.promoteToQueen(clickedPos, Colors.WHITE);
+                    JOptionPane.showMessageDialog(this, "Pawn promoted to Queen!");
+                }
+
+                //add move to history
+                Move move = new Move(player.getColor(), selectedPosition, clickedPos, capturedPiece);
+                currentGame.addMove(move);
+
+                currentGame.updateTurn();
+
+                //back to initial
+                selectedPosition = null;
+                statusLabel.setText("Move successful! Waiting for computer...");
+                refreshBoard();
+
+                //checkmate?
                 if (currentGame.checkForMate()) {
-                    JOptionPane.showMessageDialog(this, "Checkmate! Game Over.");
+                    JOptionPane.showMessageDialog(this, "CHECKMATE! You won!");
+                    return; //stop game
+                }
+
+                //computer move
+                if (currentGame.getCurrentPlayer().getColor() == Colors.BLACK) {
+                    //delay so you can notice it
+                    Timer timer = new Timer(500, e -> {
+                        makeComputerMove();
+                        ((Timer)e.getSource()).stop(); // Run once
+                    });
+                    timer.setRepeats(false);
+                    timer.start();
                 }
 
             } catch (Exception ex) {
                 statusLabel.setText("Invalid Move: " + ex.getMessage());
-                selectedPosition = null;
+                selectedPosition = null; //reset on error
                 refreshBoard();
+            }
+        }
+    }
+
+    private void makeComputerMove() {
+        Player currentPlayer = currentGame.getCurrentPlayer();
+        if (currentPlayer.getColor() != Colors.BLACK) return;
+
+        Board board = currentGame.getBoard();
+        List<ChessPair<Position, Piece>> myPieces = board.getPiecesByColor(Colors.BLACK);
+
+        class ValidMove {
+            Position from;
+            Position to;
+            Piece piece;
+            public ValidMove(Position f, Position t, Piece p) { from = f; to = t; piece = p; }
+        }
+
+        java.util.List<ValidMove> allMoves = new java.util.ArrayList<>();
+
+        //find all moves
+        for (ChessPair<Position, Piece> pair : myPieces) {
+            Piece p = pair.getValue();
+            Position start = p.getPosition();
+            List<Position> candidates = p.getPossibleMoves(board);
+
+            for (Position target : candidates) {
+                try {
+                    //check if this specific move is legal
+                    if (board.isValidMove(start, target)) {
+                        allMoves.add(new ValidMove(start, target, p));
+                    }
+                } catch (InvalidMoveException _) {
+                }
+            }
+        }
+
+        //pick random move
+        if (!allMoves.isEmpty()) {
+            java.util.Random rand = new java.util.Random();
+            ValidMove chosenMove = allMoves.get(rand.nextInt(allMoves.size()));
+
+            try {
+                Piece capturedPiece = board.getPieceAt(chosenMove.to); // Save for history
+                currentPlayer.makeMove(chosenMove.from, chosenMove.to, board);
+
+                //promote
+                Piece movedPiece = board.getPieceAt(chosenMove.to);
+                if (movedPiece != null && movedPiece.type() == 'P' && chosenMove.to.getRow() == 1) {
+                    board.promoteToQueen(chosenMove.to, Colors.BLACK);
+                }
+
+                Move moveRecord = new Move(Colors.BLACK, chosenMove.from, chosenMove.to, capturedPiece);
+                currentGame.addMove(moveRecord);
+
+                currentGame.updateTurn();
+                refreshBoard();
+
+                if (currentGame.checkForMate()) {
+                    JOptionPane.showMessageDialog(this, "You lost! Checkmate.");
+                } else if (board.isInCheck(Colors.WHITE)) {
+                    statusLabel.setText("WARNING: You are in Check!");
+                } else {
+                    statusLabel.setText("Your turn.");
+                }
+
+            } catch (Exception e) {
+                System.err.println("Computer failed to move: " + e.getMessage());
+            }
+        } else {
+            if (board.isInCheck(Colors.BLACK)) {
+                JOptionPane.showMessageDialog(this, "You Won! Computer is in Checkmate.");
+            } else {
+                JOptionPane.showMessageDialog(this, "Stalemate! It's a draw.");
             }
         }
     }
@@ -132,19 +243,14 @@ public class GamePanel extends JPanel {
         Board b = currentGame.getBoard();
         Player current = currentGame.getCurrentPlayer();
 
-        // Update top text
         turnLabel.setText("Turn: " + current.getColor() + " (" + current.getName() + ")");
 
         for (int row = 0; row < 8; row++) {
             for (int col = 0; col < 8; col++) {
-                // 1. Reset Colors
                 if ((row + col) % 2 == 0) squares[row][col].setBackground(COLOR_LIGHT);
                 else squares[row][col].setBackground(COLOR_DARK);
 
-                // 2. Place Pieces
                 try {
-                    // We wrap this in try-catch because Position constructor throws Exception
-                    // even though we know logic (0-7) is safe.
                     char posCol = (char) ('A' + col);
                     int posRow = 8 - row;
                     Position pos = new Position(posCol, posRow);
@@ -153,10 +259,9 @@ public class GamePanel extends JPanel {
                     if (p != null) {
                         squares[row][col].setText(getUnicodePiece(p));
 
-                        // Visual contrast fix
+                        //contrast so it's okay to see
                         if (p.getColor() == Colors.WHITE) {
                             squares[row][col].setForeground(Color.WHITE);
-                            // If white text on beige background is hard to see, try Color.DARK_GRAY
                         } else {
                             squares[row][col].setForeground(Color.BLACK);
                         }
@@ -164,7 +269,6 @@ public class GamePanel extends JPanel {
                         squares[row][col].setText("");
                     }
                 } catch (InvalidMoveException e) {
-                    // This block should never be reached given the for-loop bounds
                     System.err.println("Board refresh error: " + e.getMessage());
                 }
             }

@@ -109,15 +109,7 @@ public class LoginPanel extends JPanel {
         });
 
         registerButton.addActionListener(e -> {
-            String email = emailField.getText();
-            String pass = new String(passField.getPassword());
-            if (email.isEmpty() || pass.isEmpty()) return;
-
-            if (Main.getInstance().register(email, pass)) {
-                JOptionPane.showMessageDialog(this, "Account Created!");
-            } else {
-                JOptionPane.showMessageDialog(this, "User already exists.");
-            }
+            Main.getInstance().showScreen("REGISTER");
         });
     }
 

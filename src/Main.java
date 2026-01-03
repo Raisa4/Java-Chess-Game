@@ -44,7 +44,7 @@ public class Main {
         window.setSize(900, 700);
         window.setLocationRelativeTo(null); //center on screen
 
-        //save data on closing window
+        //save data
         window.addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
@@ -55,8 +55,9 @@ public class Main {
         cardLayout = new CardLayout();
         mainPanel = new JPanel(cardLayout);
 
-        //add all the screens
         mainPanel.add(new LoginPanel(), "LOGIN");
+        mainPanel.add(new RegisterPanel(), "REGISTER");
+        mainPanel.add(new GamesListPanel(), "GAMES_LIST");
 
         MenuPanel menuPanel = new MenuPanel();
         mainPanel.add(menuPanel, "MENU");
@@ -64,24 +65,50 @@ public class Main {
         gamePanel = new GamePanel();
         mainPanel.add(gamePanel, "GAME");
 
+
         //add main panel to window
         window.add(mainPanel);
         window.setVisible(true);
     }
+    public void resumeGame(Game game) {
+        if (game == null) return;
 
+        // Set the game in the panel
+        try {
+            gamePanel.setGame(game);
+            showScreen("GAME");
+        } catch (Exception e) {
+            System.out.println("Error resuming game: " + e.getMessage());
+        }
+    }
 
+    public void deleteGame(Game game) {
+        if (currentUser != null) {
+            currentUser.removeGame(game);
+            gamesMap.remove(game.getID());
+            // Save changes to file immediately (optional but recommended)
+            write();
+        }
+    }
+
+    // 3. UPDATE showScreen() TO REFRESH THE LIST
     public void showScreen(String screenName) {
         cardLayout.show(mainPanel, screenName);
 
+        // Refresh Menus/Lists when shown
         if (screenName.equals("MENU")) {
-
             for (Component comp : mainPanel.getComponents()) {
-                if (comp instanceof MenuPanel) {
-                    ((MenuPanel) comp).refreshStats();
-                }
+                if (comp instanceof MenuPanel) ((MenuPanel) comp).refreshStats();
+            }
+        }
+        // Refresh Game List
+        if (screenName.equals("GAMES_LIST")) {
+            for (Component comp : mainPanel.getComponents()) {
+                if (comp instanceof GamesListPanel) ((GamesListPanel) comp).refreshGameList();
             }
         }
     }
+
 
     public boolean login(String email, String password) {
         for (User u : users) {
