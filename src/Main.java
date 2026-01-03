@@ -66,14 +66,12 @@ public class Main {
         mainPanel.add(gamePanel, "GAME");
 
 
-        //add main panel to window
         window.add(mainPanel);
         window.setVisible(true);
     }
     public void resumeGame(Game game) {
         if (game == null) return;
 
-        // Set the game in the panel
         try {
             gamePanel.setGame(game);
             showScreen("GAME");
@@ -86,22 +84,18 @@ public class Main {
         if (currentUser != null) {
             currentUser.removeGame(game);
             gamesMap.remove(game.getID());
-            // Save changes to file immediately (optional but recommended)
             write();
         }
     }
 
-    // 3. UPDATE showScreen() TO REFRESH THE LIST
     public void showScreen(String screenName) {
         cardLayout.show(mainPanel, screenName);
 
-        // Refresh Menus/Lists when shown
         if (screenName.equals("MENU")) {
             for (Component comp : mainPanel.getComponents()) {
                 if (comp instanceof MenuPanel) ((MenuPanel) comp).refreshStats();
             }
         }
-        // Refresh Game List
         if (screenName.equals("GAMES_LIST")) {
             for (Component comp : mainPanel.getComponents()) {
                 if (comp instanceof GamesListPanel) ((GamesListPanel) comp).refreshGameList();

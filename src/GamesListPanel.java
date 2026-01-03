@@ -27,7 +27,7 @@ public class GamesListPanel extends JPanel {
             backgroundImage = null;
         }
 
-        // 1. Title Bar
+        //title
         JPanel titlePanel = new JPanel();
         titlePanel.setOpaque(false);
         titlePanel.setBorder(new EmptyBorder(20, 0, 20, 0));
@@ -39,23 +39,23 @@ public class GamesListPanel extends JPanel {
 
         add(titlePanel, BorderLayout.NORTH);
 
-        // 2. The List Area
+        //list
         listContainer = new JPanel();
         listContainer.setLayout(new BoxLayout(listContainer, BoxLayout.Y_AXIS));
         listContainer.setOpaque(false);
 
-        // Scroll Pane for the list
+        //scroll
         scrollPane = new JScrollPane(listContainer);
         scrollPane.setOpaque(false);
         scrollPane.getViewport().setOpaque(false);
         scrollPane.setBorder(new EmptyBorder(20, 50, 20, 50)); // Margins
 
-        // Remove scroll bars visuals for cleaner look (optional)
+        //inisible scroll
         scrollPane.getVerticalScrollBar().setUnitIncrement(16);
 
         add(scrollPane, BorderLayout.CENTER);
 
-        // 3. Back Button Area
+        //back btn
         JPanel bottomPanel = new JPanel();
         bottomPanel.setOpaque(false);
         bottomPanel.setBorder(new EmptyBorder(20, 0, 20, 0));
@@ -68,7 +68,7 @@ public class GamesListPanel extends JPanel {
         add(bottomPanel, BorderLayout.SOUTH);
     }
 
-    // Called every time we switch to this screen
+
     public void refreshGameList() {
         listContainer.removeAll();
         User currentUser = Main.getInstance().getCurrentUser();
@@ -96,16 +96,16 @@ public class GamesListPanel extends JPanel {
         row.setBorder(new EmptyBorder(10, 20, 10, 20));
         row.setMaximumSize(new Dimension(600, 80)); // Fixed height per row
 
-        // Game Info Text
+        //game info
         String vsInfo = "Game #" + game.getID() + " | vs Computer";
-        // Assuming getting moves count is safe
+
         int movesCount = (game.getMoves() != null) ? game.getMoves().size() : 0;
         String subInfo = "Moves played: " + movesCount;
 
         JLabel textLabel = new JLabel("<html><b style='font-size:14px'>" + vsInfo + "</b><br>" + subInfo + "</html>");
         textLabel.setForeground(COLOR_BEIGE);
 
-        // Buttons Panel
+
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         btnPanel.setOpaque(false);
 
@@ -126,7 +126,7 @@ public class GamesListPanel extends JPanel {
 
             if (confirm == JOptionPane.YES_OPTION) {
                 Main.getInstance().deleteGame(game);
-                refreshGameList(); // Refresh list immediately
+                refreshGameList();
             }
         });
 
