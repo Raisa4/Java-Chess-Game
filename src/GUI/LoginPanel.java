@@ -26,6 +26,7 @@ public class LoginPanel extends JPanel {
             backgroundImage = ImageIO.read(new File("src/input/background.png"));
         } catch (IOException e) {
             backgroundImage = null;
+            System.err.println("Error background LoginPanel line 29 " + e.getMessage());
         }
 
         setLayout(new GridBagLayout());

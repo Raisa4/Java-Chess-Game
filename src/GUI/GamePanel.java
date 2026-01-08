@@ -6,6 +6,7 @@ import main.Main;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class GamePanel extends JPanel implements GameObserver {
@@ -36,7 +37,6 @@ public class GamePanel extends JPanel implements GameObserver {
         add(statusLabel, BorderLayout.SOUTH);
     }
 
-    // Wrapper to catch exception from lambda
     private void handleSquareClickWrapper(int row, int col) {
         try {
             handleSquareClick(row, col);
@@ -64,7 +64,7 @@ public class GamePanel extends JPanel implements GameObserver {
     private void handleSquareClick(int row, int col) throws InvalidMoveException {
         if (currentGame == null) return;
 
-        //(0,0) e top left and i need them to be as A1 bottom left
+        //(0,0) e top left and I need them to be as A1 bottom left
         char posCol = (char) ('A' + col);
         int posRow = 8 - row;
         Position clickedPos = new Position(posCol, posRow);
@@ -139,7 +139,7 @@ public class GamePanel extends JPanel implements GameObserver {
                         } catch (InvalidMoveException ex) {
                             throw new RuntimeException(ex);
                         }
-                        ((Timer)e.getSource()).stop(); // Run once
+                        ((Timer)e.getSource()).stop(); //run once
                     });
                     timer.setRepeats(false);
                     timer.start();
@@ -159,15 +159,7 @@ public class GamePanel extends JPanel implements GameObserver {
 
         Board board = currentGame.getBoard();
         List<ChessPair<Position, Piece>> myPieces = board.getPiecesByColor(currentPlayer.getColor());
-
-        class ValidMove {
-            Position from;
-            Position to;
-            Piece piece;
-            public ValidMove(Position f, Position t, Piece p) { from = f; to = t; piece = p; }
-        }
-
-        java.util.List<ValidMove> allMoves = new java.util.ArrayList<>();
+        List<Move> allMoves = new ArrayList<>();
 
         //find all moves
         for (ChessPair<Position, Piece> pair : myPieces) {
@@ -179,7 +171,7 @@ public class GamePanel extends JPanel implements GameObserver {
                 try {
                     //check if this specific move is legal
                     if (board.isValidMove(start, target)) {
-                        allMoves.add(new ValidMove(start, target, p));
+                        allMoves.add(new Move(p.getColor(),start,target, board.getPieceAt(target)));
                     }
                 } catch (InvalidMoveException _) {
                 }
@@ -189,29 +181,29 @@ public class GamePanel extends JPanel implements GameObserver {
         //pick random move
         if (!allMoves.isEmpty()) {
             java.util.Random rand = new java.util.Random();
-            ValidMove chosenMove = allMoves.get(rand.nextInt(allMoves.size()));
+            Move chosenMove = allMoves.get(rand.nextInt(allMoves.size()));
 
             try {
-                Piece capturedPiece = board.getPieceAt(chosenMove.to); // Save for history
-                currentPlayer.makeMove(chosenMove.from, chosenMove.to, board);
+                Piece capturedPiece = board.getPieceAt(chosenMove.getPosTo()); // Save for history
+                currentPlayer.makeMove(chosenMove.getPosFrom(), chosenMove.getPosTo(), board);
 
                 //promote
-                Piece movedPiece = board.getPieceAt(chosenMove.to);
+                Piece movedPiece = board.getPieceAt(chosenMove.getPosTo());
                 int compPromoRow = (currentPlayer.getColor() == Colors.WHITE) ? 8 : 1;
 
-                if (movedPiece != null && movedPiece.type() == 'P' && chosenMove.to.getRow() == compPromoRow) {
-                    board.promoteToQueen(chosenMove.to, currentPlayer.getColor());
+                if (movedPiece != null && movedPiece.type() == 'P' && chosenMove.getPosTo().getRow() == compPromoRow) {
+                    board.promoteToQueen(chosenMove.getPosTo(), currentPlayer.getColor());
                 }
 
-                Move moveRecord = new Move(currentPlayer.getColor(), chosenMove.from, chosenMove.to, capturedPiece);
+                Move moveRecord = new Move(currentPlayer.getColor(), chosenMove.getPosFrom(), chosenMove.getPosTo(), capturedPiece);
                 currentGame.addMove(moveRecord);
 
                 currentGame.updateTurn();
 
                 if (currentGame.checkForMate()) {
-                    int points = currentGame.getPlayer1().getPoints();
+                    int points = currentGame.getplayerHuman().getPoints();
                     Main.getInstance().endGame(currentGame,"DEFEAT", points);
-                } else if (board.isInCheck(Colors.WHITE)) {
+                } else if (board.isInCheck(currentGame.getplayerHuman().getColor())) {
                     statusLabel.setText("WARNING: You are in Check!");
                 } else {
                     statusLabel.setText("Your turn.");
@@ -225,7 +217,7 @@ public class GamePanel extends JPanel implements GameObserver {
                 System.err.println("Computer failed to move: " + e.getMessage());
             }
         } else {
-            if (board.isInCheck(Colors.BLACK)) {
+            if (board.isInCheck(currentGame.getplayerComputer().getColor())) {
                 JOptionPane.showMessageDialog(this, "You Won! Computer is in Checkmate.");
             } else {
                 Main.getInstance().endGame(currentGame, "DRAW", 0);

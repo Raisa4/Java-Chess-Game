@@ -38,7 +38,7 @@ public class GameSideBar extends JPanel {
         add(p1Label);
         add(Box.createVerticalStrut(5));
         add(p1CapturesPanel);
-        add(Box.createVerticalStrut(20)); // Spațiu între jucători
+        add(Box.createVerticalStrut(20)); //spațiu între jucători
         add(p2Label);
         add(Box.createVerticalStrut(5));
         add(p2CapturesPanel);
@@ -50,8 +50,8 @@ public class GameSideBar extends JPanel {
 
         if (currentGame == null) return;
 
-        Player user = currentGame.getPlayer1();
-        Player computer = currentGame.getPlayer2();
+        Player user = currentGame.getplayerHuman();
+        Player computer = currentGame.getplayerComputer();
 
 
         for (Piece p : user.getCapturedPieces()) {

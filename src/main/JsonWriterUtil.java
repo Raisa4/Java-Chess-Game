@@ -45,8 +45,8 @@ public class JsonWriterUtil {
 
             //save players
             JSONArray playersArr = new JSONArray();
-            addPlayerJson(playersArr, game.getPlayer1());
-            addPlayerJson(playersArr, game.getPlayer2());
+            addPlayerJson(playersArr, game.getplayerHuman());
+            addPlayerJson(playersArr, game.getplayerComputer());
             gameObj.put("players", playersArr);
 
             //save current turn

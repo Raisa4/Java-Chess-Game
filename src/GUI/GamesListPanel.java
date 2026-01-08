@@ -16,7 +16,7 @@ public class GamesListPanel extends JPanel {
     private JPanel listContainer;
     private JScrollPane scrollPane;
 
-    // --- THEME COLORS ---
+    // THEME COLORS
     private final Color COLOR_BEIGE = new Color(245, 245, 220);
     private final Color COLOR_DARK_BROWN = new Color(100, 55, 35);
     private final Color COLOR_TRANSPARENT_BOX = new Color(60, 40, 20, 200);

@@ -8,8 +8,8 @@ import java.util.List;
 public class Game {
     private int id;
     private Board board;
-    private Player player1;
-    private Player player2;
+    private Player playerHuman;
+    private Player playerComputer;
     private List<Move> moves;
     private int playerToMove;
     private List<GameObserver> observers = new ArrayList<>();
@@ -24,10 +24,10 @@ public class Game {
             obs.onGameEnd(result, points);
         }
     }
-    public Game(Player player1, Player player2) {
+    public Game(Player playerHuman, Player playerComputer) {
         this.id = 1;
-        this.player1 = player1;
-        this.player2 = player2;
+        this.playerHuman = playerHuman;
+        this.playerComputer = playerComputer;
         this.board = new Board();
         this.moves = new ArrayList<>();
     }
@@ -43,17 +43,17 @@ public class Game {
             observer.onTurnChanged(getCurrentPlayer().getColor());
         }
     }
-    public Player getPlayer1() {
-        return player1;
+    public Player getplayerHuman() {
+        return playerHuman;
     }
-    public Player getPlayer2() {
-        return player2;
+    public Player getplayerComputer() {
+        return playerComputer;
     }
     public Board getBoard() {
         return board;
     }
     public Player getCurrentPlayer() {
-        return (playerToMove == 0) ? player1 : player2;
+        return (playerToMove == 0) ? playerHuman : playerComputer;
     }
     public void setCurrentPlayerIndex(int i) {
         this.playerToMove = i;
@@ -63,10 +63,10 @@ public class Game {
         if (this.moves != null) {
             this.moves.clear();
         }
-        if (player1.getColor() == Colors.WHITE) {
-            this.playerToMove = 0;
+        if (playerHuman.getColor() == Colors.WHITE) {
+            this.playerToMove = 0;//player 1 == user
         } else {
-            this.playerToMove = 1;
+            this.playerToMove = 1;//player 2 == computer
         }
     }
     public boolean checkForMate() throws InvalidMoveException {
@@ -120,7 +120,7 @@ public class Game {
         return true;
     }
     public void setTurnByColor(Colors color) {
-        if (player1.getColor() == color) {
+        if (playerHuman.getColor() == color) {
             this.playerToMove = 0;
         } else {
             this.playerToMove = 1;

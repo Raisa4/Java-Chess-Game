@@ -127,7 +127,7 @@ public class MenuPanel extends JPanel {
         }
     }
 
-    //CUSTOM TRANSPARENT BUTTON
+    //transparent btn
     private class MenuButton extends JButton {
         public MenuButton(String text) {
             super(text);
